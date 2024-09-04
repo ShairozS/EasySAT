@@ -55,8 +55,8 @@ class KSAT_Generator:
             
         return(new_formula)
 
-
-    def from_dimacs_file(self, file, print_comments = True):
+    @staticmethod
+    def from_dimacs_file(file, print_comments = True):
         '''
         Read a DIMACS formatted .cnf file and output in cnf format
 
@@ -66,6 +66,7 @@ class KSAT_Generator:
             lines = f.readlines()
         comments = [l.replace("c", "") for l in lines if l[0]=='c']
         clauses = [l.replace('0\n', "").rstrip().split(" ") for l in lines if (not l[0]=='c' and not l[0]=='p')]
+        clauses = [[x for x in clause if x != ''] for clause in clauses]
         clauses = [c for c in clauses if len(c) >= 2]
         clauses = [[int(x) for x in x if int(x) != 0] for x in clauses]
         if print_comments:
@@ -81,7 +82,7 @@ class KSAT_Generator:
         unique_variables = set(list(itertools.chain(*samp_clauses)))
         
         # Form map
-        print("Unique variables: ", unique_variables)
+        #print("Unique variables: ", unique_variables)
         mapping = {}; idx = 1
         for i in sorted(unique_variables, reverse = True):
             if i==0:
@@ -106,7 +107,7 @@ class KSAT_Generator:
             idx += 1
 
 
-        print(mapping)
+        #print(mapping)
         # Remap
         remapped_clauses = []
         for clause in samp_clauses:
@@ -144,4 +145,21 @@ class KSAT_Generator:
         img = img[:,~np.all(img == 0, axis = 0)]
     
         
-        return(img.T)
+        return(img)
+
+    def cnf_score(self, formula):
+        
+        cnf_mat = self.cnf_to_matrix(formula)
+        # For each row
+        statements, literals = cnf_mat.shape
+        for i in range(statements):
+            score = 0
+
+            # What variables are positive
+            positives = np.where(cnf_mat[i, :] == 1)[0]
+            
+            # How many other statements involve the positive variables
+            for p in positives:
+                #score += np.sum(np.abs(cnf_mat[:, p])) - 1 / statements
+                score += np.sum(np.clip(cnf_mat[:, p], 0, 1)) - 1 / statements
+        return(score)
