@@ -6,7 +6,7 @@ import string
 import itertools
 import random
 import numpy as np
-
+from itertools import chain
 import random 
 import string
 import itertools
@@ -56,20 +56,22 @@ class KSAT_Generator:
         return(new_formula)
 
 
-    def from_dimacs_file(self, file):
+    def from_dimacs_file(self, file, print_comments = True):
         '''
         Read a DIMACS formatted .cnf file and output in cnf format
 
         Examples: https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/QG/qg.descr.html
         '''
-        with open(samp, 'r') as f:
+        with open(file, 'r') as f:
             lines = f.readlines()
         comments = [l.replace("c", "") for l in lines if l[0]=='c']
         clauses = [l.replace('0\n', "").rstrip().split(" ") for l in lines if (not l[0]=='c' and not l[0]=='p')]
-        clauses = [[int(x) for x in x] for x in clauses[:-1]]
-        clauses.append(clauses[-1][:-1])
-        print(*comments, sep = '\n')
+        clauses = [c for c in clauses if len(c) >= 2]
+        clauses = [[int(x) for x in x if int(x) != 0] for x in clauses]
+        if print_comments:
+            print(*comments, sep = '\n')
         return(clauses)
+        
 
     @staticmethod
     def remap_vals(samp_clauses):
@@ -122,23 +124,24 @@ class KSAT_Generator:
         Literals are columns
         Values are true (1) or false (-1) occurance
         '''
-        occurrence_count = Counter(chain(*map(lambda x: x, formula)))
 
+        occurrence_count = Counter(chain(*map(lambda x: x, formula)))
         items = list(occurrence_count.keys())  # items, with no repetitions
-        all_items = list(occurrence_count.elements())  # all items
-        
-        
-        img = np.zeros((len(formula), len([i for i in items if i > 0]) + 1))
+    
+        img = np.zeros((len(formula), 10000))#len([i for i in items if i > 0]) + 1))
         rmp = self.remap_vals(formula)
-        
-        for i in range(len(rmp)):
-            clause = rmp[i]        
+    
+        for i in range(len(formula)):
+            clause = formula[i]        
             for var in clause:
+                
                 if var < 0:
                     negate = -1
                 else:
                     negate = 1
                 img[i, abs(var)] = negate
         
-        img = img[:, 1:]
+        img = img[:,~np.all(img == 0, axis = 0)]
+    
+        
         return(img.T)
