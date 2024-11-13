@@ -24,6 +24,8 @@ class KSAT_Generator:
             self.var_map[i] = letters[i-1]
         #print(self.var_map)
 
+        self.cnf_mat = None
+
     def random_kcnf(self, n_literals, n_conjuncts, k=3):
         '''
         Generate a random KSAT formula in string form
@@ -144,12 +146,48 @@ class KSAT_Generator:
         
         img = img[:,~np.all(img == 0, axis = 0)]
     
-        
+        self.cnf_mat = img
         return(img)
 
-    def cnf_score(self, formula):
-        
+
+    def describe_literal(self, formula, literal):
+        '''
+        Return the positive activity, negative activity, correlated set, and correlations
+        of a literal
+        '''
         cnf_mat = self.cnf_to_matrix(formula)
+
+        # What props does the literal appear in
+        relevent_props = np.where(cnf_mat[:, literal] != 0)[0]
+        cor_set = []
+        ent_set = []
+        pos_activity = 0; neg_activity = 0
+        
+        for prop in relevent_props:
+            p = cnf_mat[prop,:]
+            if p[literal] == 1:
+                pos_activity += 1
+                cor_set += list(np.where(p==1)[0])
+            elif p[literal] == -1:
+                neg_activity += 1
+                ent_set += list(np.where(p == 1)[0])
+        ent_set = set(ent_set)
+        cor_set = set(cor_set)
+
+        out = {'pos_activity':pos_activity,
+               'neg_activity':neg_activity,
+               'correlations':cor_set,
+               'entanglements': ent_set}
+        return(out)
+        
+        
+    def cnf_score(self, formula):
+
+        if self.cnf_mat is None:
+            cnf_mat = self.cnf_to_matrix(formula)
+        else:
+            cnf_mat = self.cnf_mat
+            
         # For each row
         statements, literals = cnf_mat.shape
         for i in range(statements):
