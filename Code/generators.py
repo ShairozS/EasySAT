@@ -11,6 +11,7 @@ import random
 import string
 import itertools
 from collections import Counter
+
 class KSAT_Generator:
 
 
@@ -26,20 +27,39 @@ class KSAT_Generator:
 
         self.cnf_mat = None
 
-    def random_kcnf(self, n_literals, n_conjuncts, k=3):
+    def random_kcnf(self, 
+                    n_literals, # How many total literals in the formula?
+                    n_conjuncts, # How many conjuncts in the formula?
+                    k=3, # How many literals per conjunct
+                    dimacs=True, # Output in DIMACS format?
+                    exactly_k = True, # Enforce each conjunct having exactly k literals
+                    no_contradictions = True): # Prevent a literal and its negation in the same conjunct
         '''
         Generate a random KSAT formula in string form
         '''
         result = []
-        for _ in range(n_conjuncts):
+        while len(result) < n_conjuncts:
             conj = set()
+            literals_used = []
             for _ in range(k):
                 index = random.randint(1, n_literals)
                 conj.add((
                     str(index),#.rjust(10, '0'),
                     bool(random.randint(0,2)),
                 ))
-            result.append(conj)
+                
+                if exactly_k:
+                    if len(conj)!=k:
+                        continue
+                if no_contradictions:
+                    if index in literals_used or -index in literals_used:
+                        continue
+                
+                result.append(conj)
+                literals_used.append(index)
+                
+        if dimacs:
+            return(self.kcnf_to_cnf(result))
         return result
 
 
@@ -120,7 +140,6 @@ class KSAT_Generator:
 
         return(remapped_clauses)
 
-    #@staticmethod
     def cnf_to_matrix(self,formula):
         '''
         Propositions are rows
