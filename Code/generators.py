@@ -184,12 +184,15 @@ class KSAT_Generator:
         
         for prop in relevent_props:
             p = cnf_mat[prop,:]
+            
             if p[literal] == 1:
                 pos_activity += 1
                 cor_set += list(np.where(p==1)[0])
+                
             elif p[literal] == -1:
                 neg_activity += 1
-                ent_set += list(np.where(p == 1)[0])
+                ent_set += list(np.where(p==1)[0])
+                
         ent_set = set(ent_set)
         cor_set = set(cor_set)
 
