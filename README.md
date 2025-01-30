@@ -1,11 +1,16 @@
 <img src="./assets/scaling_graph.JPG" width="900" height="450" />
 
-# ExploringKSAT
+# EasySAT
+
+<img src="./assets/logo.JPG" width="160" height="155" /> 
+
 
 What is this repo?
 ```
 A toolkit for exploration of SAT (Boolean Satisfiability) problems in Python. EasySAT provides a set of
-utilities for generating, solving, and analyzing SAT instances of various kinds.
+utilities for generating, solving, and analyzing SAT instances of various kinds. It is meant primarily for students
+and those new to problems in boolean satisfiability, to quickly "get their hands dirty" without diving into
+more sophisticated libraries. 
 ```
 
 What are some of the things it can do currentely?
@@ -76,4 +81,18 @@ ksg.describe_literal(instance, 2)
 # 'neg_activity': 7,
 # 'correlations': {2, 31},
 # 'entanglements': {29, 32, 49, 55, 59, 86, 87, 95}}
+```
+
+## References
+- [PySAT, SAT Technology in Python](https://pysathq.github.io/)
+- [Dave Fernig, Solving SAT in Python (2018)](https://davefernig.com/2018/05/07/solving-sat-in-python/)
+
+If EasySAT helped your research, please cite it using the button on the top right or using the following bibtex:
+```
+@software{Shairoz_Sohail_EasySAT,
+author = {Shairoz Sohail},
+license = {MIT},
+title = {{EasySAT}},
+url = {https://github.com/ShairozS/EasySAT}
+}
 ```
