@@ -8,9 +8,9 @@
 What is this repo?
 ```
 A toolkit for exploration of SAT (Boolean Satisfiability) problems in Python. EasySAT provides a set of
-utilities for generating, solving, and analyzing SAT instances of various kinds. It is meant primarily for students
-and those new to problems in boolean satisfiability, to quickly "get their hands dirty" without diving into
-more sophisticated libraries. 
+utilities for generating, solving, and analyzing SAT instances of various kinds. It is meant primarily
+for students and those new to problems in boolean satisfiability, to quickly "get their hands dirty"
+without diving into more sophisticated libraries. 
 ```
 
 What are some of the things it can do currentely?
