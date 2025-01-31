@@ -149,7 +149,7 @@ class BruteForce:
                 tried.append(sample)
                 
             # If # of propagations == number of potential models, exit w/ UNSAT
-            if self.stats['propagations'] == (2**(self.num_of_literals)):
+            if self.stats['propagations'] >= (2**(self.num_of_literals)):
                 return False, None, self.stats['propagations']
 
         sample = [sample[x]*(x+1) for x in range(self.num_of_literals)]
