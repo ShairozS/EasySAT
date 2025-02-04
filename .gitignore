@@ -1,0 +1,10 @@
+
+/build
+/easysat.egg-info
+/easysat/.ipynb_checkpoints
+/easysat/__pycache__
+/Notebooks/.ipynb_checkpoints
+/Code/__pycache__
+/Code/.ipynb_checkpoints
+/.ipynb_checkpoints
+/Code/__pycache__

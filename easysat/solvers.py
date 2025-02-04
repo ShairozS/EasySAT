@@ -4,13 +4,59 @@ A set of classes and functions to solve k-sat instances
 
 import itertools
 import numpy as np
+from pysat import solvers
 
+def count_solutions(instance, solver = None, return_solutions = False):
+    '''
+    Count the number of solutions to a k-sat instance using
+    a SAT solver. This function utilizes a simple brute
+    force approach using a solve-exclude loop and is not 
+    recommended for larger instances. 
+    '''
+    if solver is None:
+        solver = solvers.Glucose3()
+    for clause in instance:
+        solver.add_clause(clause)
 
+    solutions = []
+    while solver.solve():
+        solution = solver.get_model()
+        solutions.append(solution)
+        # Add a clause to prevent the solver from finding the same solution again
+        solver.add_clause([-lit for lit in solution])
+
+    if return_solutions:
+        return len(solutions), solutions
+    return len(solutions)
+    
+def find_backbone(instance, solver=None):
+    '''
+    Return the set of backbone literals for a
+    SAT instance if it is solvable.
+    '''
+    if solver is None:
+        solver = solvers.Glucose3()
+        
+    # First, get all the solutions to the instance
+    sat, solutions = count_solutions(instance, solver=solver, return_solutions = True)
+    if sat == 0:
+        raise NotSatisfiable
+    backbone = []
+    
+    # Now, iterate through the solutions to find variables that only show up with a single polarity
+    unique_polarities = np.apply_along_axis(lambda x: len(np.unique(x)), 0, s)
+    
+    backbone_literals = np.where(unique_polarities < 2)[0]
+    if len(backbone_literals) > 0:
+        for b in backbone_literals:
+            backbone.append(solutions[0][b])
+
+    return(backbone)
 
 
 def str_to_kcnf(formula):
     '''
-    Convert a KSAT formula in string format to CNF format
+    Convert a KSAT formula in string format to CNF format (i.e [[1,-2], [2, -3]...])
     '''
     sign = lambda x: int(x[0]) if x[1] else -int(x[0])
     conjuncts = []
@@ -23,7 +69,7 @@ def str_to_kcnf(formula):
 
 def kcnf_to_str(formula):
     '''
-    Convert a KSAT formula in string format to CNF format
+    Convert a KSAT formula in CNF format to string format (i.e (1, True), (2, False) ...)
     '''
     sign = lambda x: (str(abs(x)), True) if x>0 else (str(abs(x)), False)
     conjuncts = []
@@ -155,21 +201,5 @@ class BruteForce:
         sample = [sample[x]*(x+1) for x in range(self.num_of_literals)]
         return True, sample, self.stats['propagations']
 
-def brute_force(cnf):
-    literals = set()
-    for conj in cnf:
-        for disj in conj:
-            literals.add(disj[0])
- 
-    literals = list(literals)
-    n = len(literals)
-    steps = 0
-    for seq in itertools.product([True,False], repeat=n):
-        steps += 1
-        a = set(zip(literals, seq))
-        if all([bool(disj.intersection(a)) for disj in cnf]):
-            return True, a, steps
- 
-    return False, None, steps
 
 
