@@ -15,10 +15,17 @@ without diving into more sophisticated libraries.
 
 What are some of the things it can do currentely?
 ```
-1) Generate random K-SAT formula with a set number of clauses and literals.
-2) Read in formulas from different benchmarks (in .cnf format).
-3) Test multiple solvers including BFS, DPLL, CaDiCaL, Glucose, Minicard and more.
-4) Implement custom solvers and benchmark them against existing implementations.
+> Generate random K-SAT formula with a set number of clauses and literals.
+
+> Read in formulas from different benchmarks (in .cnf format).
+
+> Test multiple solvers including BFS, DPLL, CaDiCaL, Glucose, Minicard and more.
+
+> Provide metadata on instances, including variable activity and positive/negative correlations
+
+> Count the number of solutions to a SAT instance
+
+> Output the backbone of a SAT instance
 ```
 
 Are there sample tutorials to get started with?
@@ -27,8 +34,17 @@ Yes! Look under ./Samples/Notebooks
 ```
 
 ## Installation
+
+Install from PyPi
 ```
 pip install easysat
+```
+
+or install directly from repo
+```
+git clone https://github.com/ShairozS/EasySAT
+cd EasySAT
+pip install .
 ```
 
 ## Examples
