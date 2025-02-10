@@ -96,7 +96,7 @@ def test_conj(conj, model):
         pred = model[abs(c)-1]
         if pred<=0 and c<0:
             agreement.append(1)
-        elif pred==1 and c>0:
+        elif pred>0 and c>0:
             agreement.append(1)
     if len(agreement) == 0:
         return False
@@ -185,11 +185,11 @@ class BruteForce:
             sample = list(sample)
             if sample not in tried:
                 
-                # add to propagations
-                self.stats['propagations'] += 1
-                
                 # Does this satisfy? 
                 solved = attempt(self.formula, sample)
+
+                # add to propagations
+                self.stats['propagations'] += 1
                 
                 # If not, add to tried combinations
                 tried.append(sample)
