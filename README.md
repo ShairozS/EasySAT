@@ -2,7 +2,7 @@
 
 # EasySAT
 
-<img src="./assets/logo.JPG" width="160" height="155" /> 
+<img src="./assets/logo.png">
 
 
 What is this repo?
@@ -108,7 +108,7 @@ If EasySAT helped your research, please cite it using the button on the top righ
 @software{Shairoz_Sohail_EasySAT,
 author = {Shairoz Sohail},
 license = {MIT},
-title = {{EasySAT}},
+title = {{EasySAT: A Simple Python Toolkit for Generating and Solving Boolean SAT Instances}},
 url = {https://github.com/ShairozS/EasySAT}
 }
 ```
