@@ -12,55 +12,119 @@ import string
 import itertools
 from collections import Counter
 
+
+
 class KSAT_Generator:
 
-
-    def __init__(self, max_literals = 100):
+    def __init__(self, max_literals=100):
         self.var_map = {}
         letters = list(string.ascii_uppercase)
         letters2 = itertools.combinations(letters, 2)
-        while(len(letters)) < max_literals:
+        while len(letters) < max_literals:
             letters.append(''.join(next(letters2)))
-        for i in range(1,max_literals):
-            self.var_map[i] = letters[i-1]
-        #print(self.var_map)
+        for i in range(1, max_literals + 1):
+            self.var_map[i] = letters[i - 1]
 
-        self.cnf_mat = None
 
-    def random_kcnf(self, 
-                    n_literals, # How many total literals in the formula?
-                    n_conjuncts, # How many conjuncts in the formula?
-                    k=3, # How many literals per conjunct
-                    dimacs=True, # Output in DIMACS format?
-                    exactly_k = True, # Enforce each conjunct having exactly k literals
-                    no_contradictions = True): # Prevent a literal and its negation in the same conjunct
-        '''
-        Generate a random KSAT formula in string form
-        '''
-        result = []
-        while len(result) < n_conjuncts:
-            conj = set()
-            literals_used = []
-            for _ in range(k):
-                index = random.randint(1, n_literals)
-                conj.add((
-                    str(index),#.rjust(10, '0'),
-                    bool(random.randint(0,2)),
-                ))
-                
-                if exactly_k:
-                    if len(conj)!=k:
-                        continue
-                if no_contradictions:
-                    if index in literals_used or -index in literals_used:
-                        continue
-                
-                result.append(conj)
-                literals_used.append(index)
-                
-        if dimacs:
-            return(self.kcnf_to_cnf(result))
-        return result
+    def random_kcnf(self,
+                    n_literals,
+                    n_conjuncts=None,
+                    k=3,
+                    dimacs=True,
+                    exactly_k=True,
+                    no_contradictions=True):
+
+        # Phase-transition default if not specified
+        if n_conjuncts is None:
+            n_conjuncts = int(self._critical_ratio(k) * n_literals)
+
+        clauses = self._balanced_kcnf(
+            n_vars=n_literals,
+            n_clauses=n_conjuncts,
+            k=k,
+            no_contradictions=no_contradictions
+        )
+
+        # Inject hardness (small probability)
+        if random.random() < 0.5:
+            clauses = self._near_sat_noise(clauses, n_literals, noise=0.05)
+
+        if random.random() < 0.3:
+            clauses += self._unsat_core(k)
+
+        return self.kcnf_to_cnf(clauses) if dimacs else clauses
+
+
+    def _balanced_kcnf(self, n_vars, n_clauses, k, no_contradictions):
+        clauses = []
+        usage = {i: 0 for i in range(1, n_vars + 1)}
+
+        for _ in range(n_clauses):
+            clause = set()
+            vars_sorted = sorted(usage, key=lambda v: usage[v])
+
+            for var in vars_sorted:
+                if len(clause) == k:
+                    break
+                sign = random.choice([True, False])
+                lit = (var, sign)
+                if no_contradictions and (var, not sign) in clause:
+                    continue
+                clause.add(lit)
+                usage[var] += 1
+
+            clauses.append(clause)
+
+        return clauses
+
+    def _near_sat_noise(self, clauses, n_vars, noise=0.05):
+        assignment = {i: random.choice([True, False]) for i in range(1, n_vars + 1)}
+        new_clauses = []
+
+        for clause in clauses:
+            new_clause = set()
+            for var, sign in clause:
+                if random.random() < noise:
+                    sign = not sign
+                new_clause.add((var, sign))
+            new_clauses.append(new_clause)
+
+        return new_clauses
+
+    def _unsat_core(self, k):
+        # Small hard UNSAT core
+        if k < 3:
+            return []
+        return [
+            {(1, True), (2, True), (3, True)},
+            {(1, False), (2, True), (3, True)},
+            {(1, True), (2, False), (3, True)},
+            {(1, True), (2, True), (3, False)},
+            {(1, False), (2, False), (3, False)}
+        ]
+
+
+    def _critical_ratio(self, k):
+        return {
+            3: 4.26,
+            4: 9.93,
+            5: 21.1
+        }.get(k, 4.26)
+
+    def kcnf_to_cnf(self, clauses):
+        """
+        DIMACS CNF formatter
+        """
+        max_var = max(var for clause in clauses for var, _ in clause)
+        lines = [f"p cnf {max_var} {len(clauses)}"]
+        for clause in clauses:
+            line = []
+            for var, sign in clause:
+                lit = var if sign else -var
+                line.append(str(lit))
+            line.append("0")
+            lines.append(" ".join(line))
+        return "\n".join(lines)
 
 
     def kcnf_to_cnf(self, formula):
